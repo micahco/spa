@@ -11,9 +11,9 @@ help:
 confirm:
 	@echo -n "Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]
 
-## audit: tidy dependencies and format, vet and test all code
-.PHONY: audit
-audit:
+## api/audit: tidy dependencies and format, vet and test all code
+.PHONY: api/audit
+api/audit:
 	@echo "Tidying and verifying module dependencies..."
 	go mod tidy
 	go mod verify
@@ -25,19 +25,18 @@ audit:
 	@echo "Running tests..."
 	go test -race -vet=off ./...
 	
-## build: build the cmd/api application
+## api/build: build the api
 current_time = $(shell date --iso-8601=seconds)
 git_description = $(shell git describe --always --dirty --tags --long;)
 linker_flags = '-s -X main.buildTime=${current_time} -X main.version=${git_description}'
-
-.PHONY: build
-build:
+.PHONY: api/build
+api/build:
 	@echo "Building cmd/api..."
 	go build -ldflags=${linker_flags} -o=./bin/api ./cmd/api
 
-## run: run the cmd/api application
-.PHONY: run
-run:
+## api/run: run the api server
+.PHONY: api/run
+api/run:
 	go run ./cmd/api -port=4000 -dev \
 		-db-dsn=${DATABASE_URL} \
 		-smtp-host=${API_SMTP_HOST} \
@@ -70,3 +69,13 @@ db/migrations/up: confirm
 db/migrations/drop:
 	@echo "Dropping the entire database schema..."
 	migrate -path ./migrations -database ${DATABASE_URL} drop
+
+## frontend/build: build the frontend
+.PHONY: frontend/build
+frontend/build:
+	pnpm --filter frontend run build
+
+## frontend/run: run the frontend server
+.PHONY: frontend/run
+frontend/run:
+	pnpm --filter frontend run dev

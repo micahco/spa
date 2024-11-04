@@ -26,9 +26,14 @@ type application struct {
 }
 
 func (app *application) serve(errLog *log.Logger) error {
+	r, err := app.routes()
+	if err != nil {
+		return err
+	}
+
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", app.config.port),
-		Handler:      app.routes(),
+		Handler:      r,
 		ErrorLog:     errLog,
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
@@ -62,7 +67,7 @@ func (app *application) serve(errLog *log.Logger) error {
 
 	app.logger.Info("starting server", slog.String("addr", srv.Addr))
 
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	// http.ErrServerClosed is expected from srv.Shutdown()
 	if !errors.Is(err, http.ErrServerClosed) {
 		return err

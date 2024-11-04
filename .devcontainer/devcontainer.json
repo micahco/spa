@@ -9,13 +9,16 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"humao.rest-client"
+				"humao.rest-client",
+				"dbaeumer.vscode-eslint"
 			]
 		}
-	}
+	},
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
+	"features": {
+		"ghcr.io/devcontainers/features/node:1": {}
+	}
 
 	// Configure tool-specific properties.
 	// "customizations": {},

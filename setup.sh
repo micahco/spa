@@ -10,3 +10,6 @@ source .env
 migrate -path ./migrations -database $DATABASE_URL up
 
 make audit
+
+cd frontend
+npm install

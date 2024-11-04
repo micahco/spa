@@ -5,3 +5,5 @@ ui/static/main.css
 .envrc
 .env
 !.devcontainer/.env
+
+ui/frontend
