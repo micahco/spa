@@ -45,7 +45,6 @@ api/run:
 		-smtp-password=${API_SMTP_PASSWORD} \
 		-smtp-sender=${API_SMTP_SENDER} \
 		-limiter-enabled=false \
-		-cors-trusted-origins=${API_CORS_TRUSTED_ORIGINS}
 
 ## db/psql: connect to the database using psql
 .PHONY: db/psql

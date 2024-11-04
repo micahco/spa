@@ -1,8 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"io/fs"
 	"net/http"
+	"os"
+	"path"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -10,7 +14,7 @@ import (
 )
 
 // App router
-func (app *application) routes() (http.Handler, error) {
+func (app *application) routes() http.Handler {
 	r := chi.NewRouter()
 
 	r.Route("/api", func(r chi.Router) {
@@ -18,7 +22,6 @@ func (app *application) routes() (http.Handler, error) {
 		r.Use(middleware.StripSlashes)
 		r.Use(app.metrics)
 		r.Use(app.recovery)
-		r.Use(app.enableCORS)
 		r.Use(app.rateLimit)
 		r.Use(app.authenticate)
 
@@ -58,13 +61,26 @@ func (app *application) routes() (http.Handler, error) {
 		})
 	})
 
-	stripped, err := fs.Sub(ui.Files, "frontend")
-	if err != nil {
-		return nil, err
-	}
-	r.Handle("/*", http.FileServer(http.FS(stripped)))
+	r.Handle("/*", app.spaHandler())
 
-	return r, nil
+	return r
+}
+
+func (app *application) spaHandler() http.HandlerFunc {
+	fsys, err := fs.Sub(ui.Files, "frontend")
+	if err != nil {
+		panic(fmt.Errorf("failed getting the sub tree for the site files: %w", err))
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		f, err := fsys.Open(strings.TrimPrefix(path.Clean(r.URL.Path), "/"))
+		if err == nil {
+			defer f.Close()
+		}
+		if os.IsNotExist(err) {
+			r.URL.Path = "/"
+		}
+		http.FileServer(http.FS(fsys)).ServeHTTP(w, r)
+	}
 }
 
 func (app *application) healthcheck(w http.ResponseWriter, r *http.Request) error {

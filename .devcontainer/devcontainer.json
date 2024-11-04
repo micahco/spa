@@ -10,7 +10,8 @@
 		"vscode": {
 			"extensions": [
 				"humao.rest-client",
-				"dbaeumer.vscode-eslint"
+				"dbaeumer.vscode-eslint",
+				"vue.volar"
 			]
 		}
 	},
