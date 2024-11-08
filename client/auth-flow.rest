@@ -15,7 +15,7 @@ content-type: application/json
 {
     "email": "johndoe@example.com",
     "password": "helloworld",
-    "token": "BV5FCUSQYBD5DE2XFGCWP72MSI"
+    "token": "YXNUAFHUTA7OTTUNVQ3LPFXLWI"
 }
 
 ### Request authentication token in exchange for credentials
