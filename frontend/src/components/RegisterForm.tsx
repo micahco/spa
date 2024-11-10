@@ -1,7 +1,5 @@
 import { Show, createSignal } from "solid-js";
-import { HTTPError } from "ky";
-import api, { Error } from "../utils/api";
-import SubmitButton from "./SubmitButton";
+import api, { HTTPError, APIError } from "../utils/api";
 
 interface ValidationErrors {
 	email?: string;
@@ -17,9 +15,10 @@ export default function RegisterForm() {
 
 	const handleSubmit = async (e: Event) => {
 		e.preventDefault();
+		setIsSubmitting(true);
+		setSubmitMsg("");
 		setErrMsg(null);
 		setValErrs({});
-		setIsSubmitting(true);
 		try {
 			const response = await api.post(
 				"tokens/verification/registration",
@@ -39,7 +38,7 @@ export default function RegisterForm() {
 			}
 		} catch (err) {
 			if (err instanceof HTTPError) {
-				const data = await err.response.json<Error>();
+				const data = await err.response.json<APIError>();
 				if (err.response.status === 422) {
 					setValErrs(data.error);
 				}
@@ -55,11 +54,11 @@ export default function RegisterForm() {
 	return (
 		<form onSubmit={handleSubmit}>
 			<div>
-				<label for="login-email">Email</label>
+				<label for="register-email">Email</label>
 				<input
 					type="email"
 					name="email"
-					id="login-email"
+					id="register-email"
 					required
 					value={email()}
 					onInput={(e) => setEmail(e.currentTarget.value)}
@@ -69,9 +68,13 @@ export default function RegisterForm() {
 				</Show>
 			</div>
 
-			<SubmitButton isSubmitting={isSubmitting()} submitMsg={submitMsg()}>
+			<button type="submit" disabled={isSubmitting()}>
 				Register
-			</SubmitButton>
+			</button>
+
+			<Show when={submitMsg()}>
+				<p>{submitMsg()}</p>
+			</Show>
 
 			<Show when={errMsg()}>
 				<p class="err">{errMsg()}</p>

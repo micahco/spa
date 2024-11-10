@@ -177,11 +177,11 @@ func (m UserModel) GetForVerificationToken(scope, token string) (*User, error) {
 	var expiry time.Time
 
 	sql := `
-		SELECT user_.id_, user_.created_at_, user_.email_, user_.password_hash_, 
+		SELECT user_.id_, user_.created_at_, user_.email_, user_.password_hash_,
 		user_.version_, verification_token_.expiry_
 		FROM user_
 		INNER JOIN verification_token_
-		ON user_.id_ = verification_token_.user_id_
+		ON user_.email_ = verification_token_.email_
 		WHERE verification_token_.scope_ = $1
 		AND verification_token_.hash_ = $2;`
 
@@ -213,6 +213,26 @@ func (m UserModel) GetForVerificationToken(scope, token string) (*User, error) {
 	}
 
 	return &u, nil
+}
+
+func (m UserModel) GetIDForEmail(email string) (uuid.UUID, error) {
+	var id uuid.UUID
+
+	sql := `
+		SELECT user_.id_
+		FROM user_
+		WHERE email_ = $1l	
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), ctxTimeout)
+	defer cancel()
+
+	err := m.pool.QueryRow(ctx, sql, email).Scan(&id)
+	if err != nil {
+		return id, err
+	}
+
+	return id, nil
 }
 
 func (m UserModel) ExistsWithEmail(email string) (bool, error) {

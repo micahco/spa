@@ -1,13 +1,20 @@
 import { Show, createSignal } from "solid-js";
+import { useNavigate } from "@solidjs/router";
 import api, { HTTPError, APIError } from "../utils/api";
 import * as auth from "../utils/auth";
+import * as flash from "../utils/flash";
+
+interface Props {
+	token: string;
+}
 
 interface ValidationErrors {
 	email?: string;
 	password?: string;
 }
 
-export default function LoginForm() {
+export default function PasswordUpdateForm(props: Props) {
+	const navigate = useNavigate();
 	const [email, setEmail] = createSignal("");
 	const [password, setPassword] = createSignal("");
 	const [isSubmitting, setIsSubmitting] = createSignal(false);
@@ -20,18 +27,25 @@ export default function LoginForm() {
 		setErrMsg(null);
 		setValErrs({});
 		try {
-			const response = await api.post("tokens/authentication", {
+			const response = await api.put("users/password ", {
 				json: {
 					email: email(),
 					password: password(),
+					token: props.token,
 				},
 			});
 
 			const data = await response.json<{
-				authentication_token: auth.Token;
+				message: string;
 			}>();
 
-			auth.login(data.authentication_token);
+			if (data.message && typeof data.message === "string") {
+				auth.logout();
+				flash.set(data.message);
+				navigate("/login");
+			} else {
+				throw new Error("something went wrong");
+			}
 		} catch (err) {
 			if (err instanceof HTTPError) {
 				const data = await err.response.json<APIError>();
@@ -50,11 +64,11 @@ export default function LoginForm() {
 	return (
 		<form onSubmit={handleSubmit}>
 			<div>
-				<label for="login-email">Email</label>
+				<label for="password-update-email">Email</label>
 				<input
 					type="email"
 					name="email"
-					id="login-email"
+					id="password-update-email"
 					required
 					value={email()}
 					onInput={(e) => setEmail(e.currentTarget.value)}
@@ -65,11 +79,11 @@ export default function LoginForm() {
 			</div>
 
 			<div>
-				<label for="login-password">Password</label>
+				<label for="password-update-password">Password</label>
 				<input
 					type="password"
 					name="password"
-					id="login-password"
+					id="password-update-password"
 					required
 					value={password()}
 					onInput={(e) => setPassword(e.currentTarget.value)}
@@ -80,7 +94,7 @@ export default function LoginForm() {
 			</div>
 
 			<button type="submit" disabled={isSubmitting()}>
-				Login
+				Update Password
 			</button>
 
 			<Show when={errMsg()}>

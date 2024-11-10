@@ -57,6 +57,7 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 		maxAge  = 3 * time.Minute
 	)
 
+	// Background routine to remove old entries every minute
 	go func() {
 		for {
 			time.Sleep(time.Minute)

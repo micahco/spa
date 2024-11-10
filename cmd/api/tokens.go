@@ -166,8 +166,7 @@ func (app *application) tokensVerificaitonPasswordResetPost(w http.ResponseWrite
 		return err
 	}
 	if !exists {
-		// User with email does not exist. Still send the same
-		// message.
+		// User with email does not exist. Still send the same message.
 		return app.writeJSON(w, http.StatusOK, msg, nil)
 	}
 

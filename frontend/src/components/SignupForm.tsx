@@ -1,14 +1,22 @@
 import { Show, createSignal } from "solid-js";
+import { useNavigate } from "@solidjs/router";
 import api, { HTTPError, APIError } from "../utils/api";
 import * as auth from "../utils/auth";
+
+interface Props {
+	token: string;
+	email: string;
+}
 
 interface ValidationErrors {
 	email?: string;
 	password?: string;
 }
 
-export default function LoginForm() {
-	const [email, setEmail] = createSignal("");
+export default function SignupForm(props: Props) {
+	const navigate = useNavigate();
+	const [token, setToken] = createSignal(props.token);
+	const [email, setEmail] = createSignal(props.email);
 	const [password, setPassword] = createSignal("");
 	const [isSubmitting, setIsSubmitting] = createSignal(false);
 	const [errMsg, setErrMsg] = createSignal<string | null>(null);
@@ -20,18 +28,31 @@ export default function LoginForm() {
 		setErrMsg(null);
 		setValErrs({});
 		try {
-			const response = await api.post("tokens/authentication", {
+			const usersResponse = await api.post("users", {
 				json: {
+					token: token(),
 					email: email(),
 					password: password(),
 				},
 			});
 
-			const data = await response.json<{
+			if (usersResponse.status !== 201) {
+				throw new Error("something went wrong...");
+			}
+
+			const authResponse = await api.post("tokens/authentication", {
+				json: {
+					email: props.email,
+					password: password(),
+				},
+			});
+
+			const data = await authResponse.json<{
 				authentication_token: auth.Token;
 			}>();
 
 			auth.login(data.authentication_token);
+			navigate("/");
 		} catch (err) {
 			if (err instanceof HTTPError) {
 				const data = await err.response.json<APIError>();
@@ -49,12 +70,26 @@ export default function LoginForm() {
 
 	return (
 		<form onSubmit={handleSubmit}>
+			<Show when={!props.token}>
+				<div>
+					<label for="signup-token">Token</label>
+					<input
+						type="text"
+						name="token"
+						id="signup-token"
+						required
+						value={token()}
+						onInput={(e) => setToken(e.currentTarget.value)}
+					/>
+				</div>
+			</Show>
+
 			<div>
-				<label for="login-email">Email</label>
+				<label for="signup-email">Email</label>
 				<input
 					type="email"
 					name="email"
-					id="login-email"
+					id="signup-email"
 					required
 					value={email()}
 					onInput={(e) => setEmail(e.currentTarget.value)}
@@ -65,11 +100,11 @@ export default function LoginForm() {
 			</div>
 
 			<div>
-				<label for="login-password">Password</label>
+				<label for="signup-password">Password</label>
 				<input
 					type="password"
 					name="password"
-					id="login-password"
+					id="signup-password"
 					required
 					value={password()}
 					onInput={(e) => setPassword(e.currentTarget.value)}
@@ -80,7 +115,7 @@ export default function LoginForm() {
 			</div>
 
 			<button type="submit" disabled={isSubmitting()}>
-				Login
+				Signup
 			</button>
 
 			<Show when={errMsg()}>

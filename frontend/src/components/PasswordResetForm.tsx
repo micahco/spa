@@ -1,37 +1,40 @@
 import { Show, createSignal } from "solid-js";
 import api, { HTTPError, APIError } from "../utils/api";
-import * as auth from "../utils/auth";
 
 interface ValidationErrors {
 	email?: string;
-	password?: string;
 }
 
-export default function LoginForm() {
+export default function PasswordResetForm() {
 	const [email, setEmail] = createSignal("");
-	const [password, setPassword] = createSignal("");
 	const [isSubmitting, setIsSubmitting] = createSignal(false);
+	const [submitMsg, setSubmitMsg] = createSignal<string | null>(null);
 	const [errMsg, setErrMsg] = createSignal<string | null>(null);
 	const [valErrs, setValErrs] = createSignal<ValidationErrors>({});
 
 	const handleSubmit = async (e: Event) => {
 		e.preventDefault();
 		setIsSubmitting(true);
+		setSubmitMsg("");
 		setErrMsg(null);
 		setValErrs({});
 		try {
-			const response = await api.post("tokens/authentication", {
-				json: {
-					email: email(),
-					password: password(),
-				},
-			});
+			const response = await api.post(
+				"tokens/verification/password-reset",
+				{
+					json: {
+						email: email(),
+					},
+				}
+			);
 
 			const data = await response.json<{
-				authentication_token: auth.Token;
+				message: string;
 			}>();
 
-			auth.login(data.authentication_token);
+			if (data.message && typeof data.message === "string") {
+				setSubmitMsg(data.message);
+			}
 		} catch (err) {
 			if (err instanceof HTTPError) {
 				const data = await err.response.json<APIError>();
@@ -50,11 +53,11 @@ export default function LoginForm() {
 	return (
 		<form onSubmit={handleSubmit}>
 			<div>
-				<label for="login-email">Email</label>
+				<label for="password-reset-email">Email</label>
 				<input
 					type="email"
 					name="email"
-					id="login-email"
+					id="password-reset-email"
 					required
 					value={email()}
 					onInput={(e) => setEmail(e.currentTarget.value)}
@@ -64,24 +67,13 @@ export default function LoginForm() {
 				</Show>
 			</div>
 
-			<div>
-				<label for="login-password">Password</label>
-				<input
-					type="password"
-					name="password"
-					id="login-password"
-					required
-					value={password()}
-					onInput={(e) => setPassword(e.currentTarget.value)}
-				/>
-				<Show when={valErrs().password}>
-					<span class="err">{valErrs().password}</span>
-				</Show>
-			</div>
-
 			<button type="submit" disabled={isSubmitting()}>
-				Login
+				Send Verification
 			</button>
+
+			<Show when={submitMsg()}>
+				<p>{submitMsg()}</p>
+			</Show>
 
 			<Show when={errMsg()}>
 				<p class="err">{errMsg()}</p>

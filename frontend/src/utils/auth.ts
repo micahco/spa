@@ -1,30 +1,49 @@
-import { AuthenticationToken } from "./api";
+import { createStore } from "solid-js/store";
+import { createEffect, createSignal } from "solid-js";
+
+export interface Token {
+	token: string;
+	expiry: string;
+}
 
 const TOKEN_KEY = "accessToken";
 const EXPIRY_KEY = "accessTokenExpiry";
 
-export function isAuthenticated() {
-	const token = localStorage.getItem(TOKEN_KEY);
-	const expiry = localStorage.getItem(EXPIRY_KEY);
+const [isAuthenticated, setIsAuthenticated] = createSignal(false);
+const [store, setStore] = createStore<Token>({
+	token: localStorage.getItem(TOKEN_KEY) || "",
+	expiry: localStorage.getItem(EXPIRY_KEY) || "",
+});
 
-	if (!token || !expiry) return false;
+createEffect(() => {
+	const { token, expiry } = store;
 
-	const exp = new Date(expiry).getTime();
+	if (token && expiry) {
+		localStorage.setItem(TOKEN_KEY, token);
+		localStorage.setItem(EXPIRY_KEY, expiry);
+	} else {
+		localStorage.removeItem(TOKEN_KEY);
+		localStorage.removeItem(EXPIRY_KEY);
+	}
+
 	const now = Date.now();
+	const expTime = new Date(expiry).getTime();
+	setIsAuthenticated(!!token && expTime > now);
+});
 
-	return exp > now;
-}
+export { isAuthenticated };
 
-export function login(data: AuthenticationToken) {
-	localStorage.setItem(TOKEN_KEY, data.token);
-	localStorage.setItem(EXPIRY_KEY, data.expiry);
+export function login(t: Token) {
+	setStore(t);
 }
 
 export function logout() {
-	localStorage.removeItem(TOKEN_KEY);
-	localStorage.removeItem(EXPIRY_KEY);
+	setStore({
+		token: "",
+		expiry: "",
+	});
 }
 
 export function getAccessToken() {
-	return localStorage.getItem(TOKEN_KEY);
+	return store.token;
 }

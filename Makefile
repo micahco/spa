@@ -44,7 +44,7 @@ api/run:
 		-smtp-username=${API_SMTP_USERNAME} \
 		-smtp-password=${API_SMTP_PASSWORD} \
 		-smtp-sender=${API_SMTP_SENDER} \
-		-limiter-enabled=false \
+		-limiter-enabled=true \
 
 ## db/psql: connect to the database using psql
 .PHONY: db/psql

@@ -1,39 +1,58 @@
 GET http://localhost:4000/api/v1/healthcheck HTTP/1.1
 
-### User signup. Requests verificaiton token.
+### Request registration token
 POST http://localhost:4000/api/v1/tokens/verification/registration HTTP/1.1
 content-type: application/json
 
 {
-    "email": "johndoe@example.com"
+    "email": "janedoe@example.com"
 }
 
-### Use verificaiton token to create an account
+### Use token to create an account
 POST http://localhost:4000/api/v1/users HTTP/1.1
 content-type: application/json
 
 {
-    "email": "johndoe@example.com",
-    "password": "helloworld",
-    "token": "YXNUAFHUTA7OTTUNVQ3LPFXLWI"
+    "email": "janedoe@example.com",
+    "password": "secret-password",
+    "token": "UVS2O5MR4NQKHZTZZJWN3QBQZE"
 }
+
+### Request password reset token
+POST http://localhost:4000/api/v1/tokens/verification/password-reset HTTP/1.1
+content-type: application/json
+
+{
+    "email": "janedoe@example.com"
+}
+
+### Use token to change password
+PUT http://localhost:4000/api/v1/users/password HTTP/1.1
+content-type: application/json
+
+{
+    "email": "janedoe@example.com",
+    "password": "helloworld",
+    "token": "E6APZLA55KXRCLYNJYR4QB3LRE"
+}
+
 
 ### Request authentication token in exchange for credentials
 POST http://localhost:4000/api/v1/tokens/authentication HTTP/1.1
 content-type: application/json
 
 {
-    "email": "johndoe@example.com",
+    "email": "janedoe@example.com",
     "password": "helloworld"
 }
 
 ### Use auth token to get user information
 GET http://localhost:4000/api/v1/users/me HTTP/1.1
-Authorization: Bearer MBPIW4MBKBUM57RPEMOJ6I27JE
+Authorization: Bearer AFRMTDX7PEZV3ELILFU2TMWXUU
 
 ### Request a verification token to change email
 POST http://localhost:4000/api/v1/tokens/verification/email-change HTTP/1.1
-Authorization: Bearer MBPIW4MBKBUM57RPEMOJ6I27JE
+Authorization: Bearer AFRMTDX7PEZV3ELILFU2TMWXUU
 content-type: application/json
 
 {
@@ -42,19 +61,10 @@ content-type: application/json
 
 ### Update user with new email address
 PUT http://localhost:4000/api/v1/users/me HTTP/1.1
-Authorization: Bearer MBPIW4MBKBUM57RPEMOJ6I27JE
+Authorization: Bearer AFRMTDX7PEZV3ELILFU2TMWXUU
 content-type: application/json
 
 {
     "email": "dames@domain.org",
-    "token": "PBKD6WANZYM6OBVIW6D4ZN5ZHM"
-}
-
-### Request a password reset
-POST http://localhost:4000/api/v1/tokens/verification/email-change HTTP/1.1
-Authorization: Bearer MBPIW4MBKBUM57RPEMOJ6I27JE
-content-type: application/json
-
-{
-    "email": "dames@domain.org"
+    "token": "2IQZC4VMRU7QNLM6OSLMRSGIMY"
 }

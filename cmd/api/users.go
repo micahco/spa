@@ -58,6 +58,7 @@ func (app *application) usersPost(w http.ResponseWriter, r *http.Request) error 
 
 func (app *application) usersPasswordPut(w http.ResponseWriter, r *http.Request) error {
 	var input struct {
+		Email    string `json:"email"`
 		Password string `json:"password"`
 		Token    string `json:"token"`
 	}
@@ -68,6 +69,7 @@ func (app *application) usersPasswordPut(w http.ResponseWriter, r *http.Request)
 	}
 
 	err = validation.ValidateStruct(&input,
+		validation.Field(&input.Email, validation.Required, is.Email),
 		validation.Field(&input.Password, validation.Required, data.PasswordLength),
 		validation.Field(&input.Token, validation.Required),
 	)
@@ -77,10 +79,18 @@ func (app *application) usersPasswordPut(w http.ResponseWriter, r *http.Request)
 
 	user, err := app.models.User.GetForVerificationToken(data.ScopePasswordReset, input.Token)
 	if err != nil {
-		switch {
+		switch err {
+		case data.ErrRecordNotFound:
+			return app.writeError(w, http.StatusUnauthorized, nil)
+		case data.ErrExpiredToken:
+			return app.writeError(w, http.StatusUnauthorized, "Expired token. Please request another password reset token.")
 		default:
 			return err
 		}
+	}
+
+	if user.Email != input.Email {
+		return app.writeError(w, http.StatusUnauthorized, nil)
 	}
 
 	err = user.SetPasswordHash(input.Password)
@@ -96,12 +106,17 @@ func (app *application) usersPasswordPut(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	err = app.models.VerificationToken.PurgeWithUserID(user.ID)
+	err = app.models.VerificationToken.PurgeWithEmail(user.Email)
 	if err != nil {
 		return err
 	}
 
-	msg := envelope{"message": "your password was successfully reset"}
+	err = app.models.AuthenticationToken.Purge(user.ID)
+	if err != nil {
+		return err
+	}
+
+	msg := envelope{"message": "Your password was successfully updated. Please login."}
 
 	return app.writeJSON(w, http.StatusOK, msg, nil)
 }
@@ -114,9 +129,8 @@ func (app *application) usersMeGet(w http.ResponseWriter, r *http.Request) error
 
 func (app *application) usersMePut(w http.ResponseWriter, r *http.Request) error {
 	var input struct {
-		Email    *string `json:"email"`
-		Password *string `json:"password"`
-		Token    *string `json:"token"`
+		Email *string `json:"email"`
+		Token *string `json:"token"`
 	}
 
 	err := app.readJSON(r, &input)
@@ -126,7 +140,6 @@ func (app *application) usersMePut(w http.ResponseWriter, r *http.Request) error
 
 	err = validation.ValidateStruct(&input,
 		validation.Field(&input.Email, is.Email),
-		validation.Field(&input.Password, data.PasswordLength),
 		validation.Field(&input.Token),
 	)
 	if err != nil {
@@ -142,7 +155,7 @@ func (app *application) usersMePut(w http.ResponseWriter, r *http.Request) error
 			case data.ErrRecordNotFound:
 				return app.writeError(w, http.StatusUnauthorized, nil)
 			case data.ErrExpiredToken:
-				return app.writeError(w, http.StatusUnauthorized, "Expired token")
+				return app.writeError(w, http.StatusUnauthorized, "Expired token. Please request another email change token.")
 			default:
 				return err
 			}
@@ -154,13 +167,6 @@ func (app *application) usersMePut(w http.ResponseWriter, r *http.Request) error
 		}
 
 		user.Email = *input.Email
-	}
-
-	if input.Password != nil {
-		err = user.SetPasswordHash(*input.Password)
-		if err != nil {
-			return err
-		}
 	}
 
 	err = app.models.User.Update(user)

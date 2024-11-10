@@ -1,13 +1,10 @@
-import ky from "ky";
-import { getAccessToken } from "./auth";
+import ky, { HTTPError } from "ky";
+import * as auth from "./auth";
 
-export interface Error {
+export { HTTPError };
+
+export interface APIError {
 	error: any;
-}
-
-export interface AuthenticationToken {
-	token: string;
-	expiry: string;
 }
 
 const api = ky.create({
@@ -18,7 +15,7 @@ const api = ky.create({
 	hooks: {
 		beforeRequest: [
 			(request) => {
-				const token = getAccessToken();
+				const token = auth.getAccessToken();
 				if (token) {
 					request.headers.set("Authorization", `Bearer ${token}`);
 				}
