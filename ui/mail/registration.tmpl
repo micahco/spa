@@ -3,7 +3,7 @@
 {{define "body"}}
 Welcome to API!
 
-Use the following token to create a user account.
+Please follow the link below to create your account:
 
-Token: {{.token}}
+{{.base}}/signup?token={{.token}}&email={{.email}}
 {{end}}

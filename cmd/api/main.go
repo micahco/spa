@@ -26,9 +26,10 @@ var (
 )
 
 type config struct {
-	port int
-	dev  bool
-	db   struct {
+	baseURL string
+	port    int
+	dev     bool
+	db      struct {
 		dsn string
 	}
 	limiter struct {
@@ -49,6 +50,7 @@ func main() {
 	var cfg config
 
 	// Default flag values for production
+	flag.StringVar(&cfg.baseURL, "base-url", "http://127.0.0.1:5173", "Base URL")
 	flag.IntVar(&cfg.port, "port", 8080, "API server port")
 	flag.BoolVar(&cfg.dev, "dev", false, "Development mode")
 
@@ -94,6 +96,7 @@ func main() {
 	}
 	logger.Info("dialing SMTP server...")
 	mailer, err := mailer.New(
+		cfg.dev,
 		cfg.smtp.host,
 		cfg.smtp.port,
 		cfg.smtp.username,

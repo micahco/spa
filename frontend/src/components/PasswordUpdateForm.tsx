@@ -1,8 +1,8 @@
 import { Show, createSignal } from "solid-js";
 import { useNavigate } from "@solidjs/router";
-import api, { HTTPError, APIError } from "../utils/api";
-import * as auth from "../utils/auth";
-import * as flash from "../utils/flash";
+import { useAuth } from "../contexts/AuthProvider";
+import { useFlash } from "../contexts/FlashProvider";
+import { api, HTTPError, APIError } from "../utils/api";
 
 interface Props {
 	token: string;
@@ -15,6 +15,8 @@ interface ValidationErrors {
 
 export default function PasswordUpdateForm(props: Props) {
 	const navigate = useNavigate();
+	const [, { logout }] = useAuth();
+	const [flash] = useFlash();
 	const [email, setEmail] = createSignal("");
 	const [password, setPassword] = createSignal("");
 	const [isSubmitting, setIsSubmitting] = createSignal(false);
@@ -40,8 +42,8 @@ export default function PasswordUpdateForm(props: Props) {
 			}>();
 
 			if (data.message && typeof data.message === "string") {
-				auth.logout();
-				flash.set(data.message);
+				logout();
+				flash(data.message);
 				navigate("/login");
 			} else {
 				throw new Error("something went wrong");

@@ -1,7 +1,7 @@
 import { Show, createSignal } from "solid-js";
 import { useNavigate } from "@solidjs/router";
-import api, { HTTPError, APIError } from "../utils/api";
-import * as auth from "../utils/auth";
+import { useAuth, Token } from "../contexts/AuthProvider";
+import { api, HTTPError, APIError } from "../utils/api";
 
 interface Props {
 	token: string;
@@ -15,6 +15,7 @@ interface ValidationErrors {
 
 export default function SignupForm(props: Props) {
 	const navigate = useNavigate();
+	const [, { login }] = useAuth();
 	const [token, setToken] = createSignal(props.token);
 	const [email, setEmail] = createSignal(props.email);
 	const [password, setPassword] = createSignal("");
@@ -48,10 +49,10 @@ export default function SignupForm(props: Props) {
 			});
 
 			const data = await authResponse.json<{
-				authentication_token: auth.Token;
+				authentication_token: Token;
 			}>();
 
-			auth.login(data.authentication_token);
+			login(data.authentication_token);
 			navigate("/");
 		} catch (err) {
 			if (err instanceof HTTPError) {

@@ -1,20 +1,22 @@
 import { Show, createEffect } from "solid-js";
 import { useNavigate } from "@solidjs/router";
-import * as auth from "../utils/auth";
-import * as flash from "../utils/flash";
+import { useAuth } from "../contexts/AuthProvider";
 import LoginForm from "../components/LoginForm";
 import FlashMessage from "../components/FlashMessage";
+import { useFlash } from "../contexts/FlashProvider";
 
 export default function Login() {
 	const navigate = useNavigate();
+	const [isAuthenticated] = useAuth();
+	const [, pop] = useFlash();
 
 	createEffect(() => {
-		if (auth.isAuthenticated()) {
+		if (isAuthenticated()) {
 			navigate("/", { replace: true });
 		}
 	});
 
-	const msg = flash.pop();
+	const msg = pop();
 
 	return (
 		<>

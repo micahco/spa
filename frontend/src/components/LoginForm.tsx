@@ -1,6 +1,7 @@
 import { Show, createSignal } from "solid-js";
-import api, { HTTPError, APIError } from "../utils/api";
-import * as auth from "../utils/auth";
+import { useAuth, Token } from "../contexts/AuthProvider";
+import { api, HTTPError, APIError } from "../utils/api";
+import { A } from "@solidjs/router";
 
 interface ValidationErrors {
 	email?: string;
@@ -8,6 +9,7 @@ interface ValidationErrors {
 }
 
 export default function LoginForm() {
+	const [, { login }] = useAuth();
 	const [email, setEmail] = createSignal("");
 	const [password, setPassword] = createSignal("");
 	const [isSubmitting, setIsSubmitting] = createSignal(false);
@@ -28,10 +30,10 @@ export default function LoginForm() {
 			});
 
 			const data = await response.json<{
-				authentication_token: auth.Token;
+				authentication_token: Token;
 			}>();
 
-			auth.login(data.authentication_token);
+			login(data.authentication_token);
 		} catch (err) {
 			if (err instanceof HTTPError) {
 				const data = await err.response.json<APIError>();
@@ -82,6 +84,8 @@ export default function LoginForm() {
 			<button type="submit" disabled={isSubmitting()}>
 				Login
 			</button>
+
+			<A href="/password-reset">Forgot password?</A>
 
 			<Show when={errMsg()}>
 				<p class="err">{errMsg()}</p>

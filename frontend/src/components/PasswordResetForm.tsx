@@ -1,5 +1,5 @@
 import { Show, createSignal } from "solid-js";
-import api, { HTTPError, APIError } from "../utils/api";
+import { api, HTTPError, APIError } from "../utils/api";
 
 interface ValidationErrors {
 	email?: string;

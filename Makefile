@@ -6,10 +6,14 @@ help:
 	@echo "Usage:"
 	@sed -n "s/^##//p" ${MAKEFILE_LIST} | column -t -s ":" |  sed -e "s/^/ /"
 
-# confirmation dialog helper
+## confirmation dialog helper
 .PHONY: confirm
 confirm:
 	@echo -n "Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]
+
+## build: build api and frontend
+.PHONY: build
+build: frontend/build api/build
 
 ## api/audit: tidy dependencies and format, vet and test all code
 .PHONY: api/audit
@@ -38,6 +42,7 @@ api/build:
 .PHONY: api/run
 api/run:
 	go run ./cmd/api -port=4000 -dev \
+		-base-url="http://127.0.0.1:5173" \
 		-db-dsn=${DATABASE_URL} \
 		-smtp-host=${API_SMTP_HOST} \
 		-smtp-port=${API_SMTP_PORT} \
@@ -72,7 +77,7 @@ db/migrations/drop:
 ## frontend/build: build the frontend
 .PHONY: frontend/build
 frontend/build:
-	pnpm --filter frontend run build
+	pnpm --filter frontend run build --emptyOutDir
 
 ## frontend/run: run the frontend server
 .PHONY: frontend/run

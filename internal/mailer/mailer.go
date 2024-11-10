@@ -16,10 +16,11 @@ type Mailer struct {
 	dialer        *gomail.Dialer
 	sender        *mail.Address
 	templateCache map[string]*template.Template
+	dev           bool
 }
 
 // Create new mailer with SMTP credentials and embedded fs using glob pattern
-func New(host string, port int, username string, password string, sender *mail.Address, fsys embed.FS, globPattern string) (*Mailer, error) {
+func New(dev bool, host string, port int, username string, password string, sender *mail.Address, fsys embed.FS, globPattern string) (*Mailer, error) {
 	cache := map[string]*template.Template{}
 
 	// Get list of filenames in embed using pattern
@@ -44,6 +45,7 @@ func New(host string, port int, username string, password string, sender *mail.A
 		dialer:        gomail.NewDialer(host, port, username, password),
 		sender:        sender,
 		templateCache: cache,
+		dev:           dev,
 	}
 
 	// Ping the SMTP server to verify authentication
@@ -56,7 +58,7 @@ func New(host string, port int, username string, password string, sender *mail.A
 	return m, nil
 }
 
-func (m *Mailer) Send(recepient, tmpl string, data map[string]any) error {
+func (m *Mailer) Send(recepient, tmpl string, data any) error {
 	t, ok := m.templateCache[tmpl]
 	if !ok {
 		return fmt.Errorf("template %s does not exist", tmpl)
@@ -72,6 +74,11 @@ func (m *Mailer) Send(recepient, tmpl string, data map[string]any) error {
 	err = t.ExecuteTemplate(body, "body", data)
 	if err != nil {
 		return err
+	}
+
+	if m.dev {
+		fmt.Println(body.String())
+		return nil
 	}
 
 	msg := gomail.NewMessage()

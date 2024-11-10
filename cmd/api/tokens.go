@@ -66,10 +66,12 @@ func (app *application) tokensVerificaitonRegistrationPost(w http.ResponseWriter
 	// Mail the plaintext token to the user's email address.
 	app.background(func() error {
 		data := map[string]any{
+			"base":  app.config.baseURL,
+			"email": input.Email,
 			"token": t.Plaintext,
 		}
 
-		return app.sendMail(input.Email, "registration.tmpl", data)
+		return app.mailer.Send(input.Email, "registration.tmpl", data)
 	})
 
 	return app.writeJSON(w, http.StatusOK, msg, nil)
@@ -133,7 +135,7 @@ func (app *application) tokensVerificaitonEmailChangePost(w http.ResponseWriter,
 			"token": t.Plaintext,
 		}
 
-		return app.sendMail(input.Email, "email-change.tmpl", data)
+		return app.mailer.Send(input.Email, "email-change.tmpl", data)
 	})
 
 	return app.writeJSON(w, http.StatusOK, msg, nil)
@@ -188,10 +190,11 @@ func (app *application) tokensVerificaitonPasswordResetPost(w http.ResponseWrite
 	// Mail the plaintext token to the user's email address
 	app.background(func() error {
 		data := map[string]any{
+			"base":  app.config.baseURL,
 			"token": t.Plaintext,
 		}
 
-		return app.sendMail(input.Email, "password-reset.tmpl", data)
+		return app.mailer.Send(input.Email, "password-reset.tmpl", data)
 	})
 
 	return app.writeJSON(w, http.StatusOK, msg, nil)

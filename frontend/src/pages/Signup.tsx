@@ -1,14 +1,15 @@
 import { createEffect } from "solid-js";
 import { useNavigate, useSearchParams } from "@solidjs/router";
-import * as auth from "../utils/auth";
+import { useAuth } from "../contexts/AuthProvider";
 import SignupForm from "../components/SignupForm";
 
 export default function Signup() {
 	const navigate = useNavigate();
 	const [searchParams] = useSearchParams();
+	const [isAuthenticated] = useAuth();
 
 	createEffect(() => {
-		if (auth.isAuthenticated()) {
+		if (isAuthenticated()) {
 			navigate("/", { replace: true });
 		}
 	});

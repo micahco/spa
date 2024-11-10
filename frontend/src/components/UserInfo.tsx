@@ -1,5 +1,5 @@
 import { Show, createResource } from "solid-js";
-import api from "../utils/api";
+import { api } from "../utils/api";
 
 interface Response {
 	user: {

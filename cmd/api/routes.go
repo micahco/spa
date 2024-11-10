@@ -24,6 +24,7 @@ func (app *application) routes() http.Handler {
 		r.Use(app.recovery)
 		r.Use(app.rateLimit)
 		r.Use(app.authenticate)
+		r.Use(secureHeaders)
 
 		// Metrics
 		r.Mount("/debug", middleware.Profiler())
