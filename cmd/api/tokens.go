@@ -152,7 +152,7 @@ func (app *application) tokensVerificaitonPasswordResetPost(w http.ResponseWrite
 	}
 
 	err = validation.ValidateStruct(&input,
-		validation.Field(&input.Email, validation.Required, is.Email),
+		validation.Field(&input.Email, validation.Required),
 	)
 	if err != nil {
 		return err
@@ -192,6 +192,7 @@ func (app *application) tokensVerificaitonPasswordResetPost(w http.ResponseWrite
 		data := map[string]any{
 			"base":  app.config.baseURL,
 			"token": t.Plaintext,
+			"email": input.Email,
 		}
 
 		return app.mailer.Send(input.Email, "password-reset.tmpl", data)
@@ -212,8 +213,8 @@ func (app *application) tokensAuthenticationPost(w http.ResponseWriter, r *http.
 	}
 
 	err = validation.ValidateStruct(&input,
-		validation.Field(&input.Email, validation.Required, is.Email),
-		validation.Field(&input.Password, validation.Required, data.PasswordLength),
+		validation.Field(&input.Email, validation.Required),
+		validation.Field(&input.Password, validation.Required),
 	)
 	if err != nil {
 		return err

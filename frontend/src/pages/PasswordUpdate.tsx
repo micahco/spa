@@ -4,18 +4,19 @@ import PasswordUpdateForm from "../components/PasswordUpdateForm";
 export default function PasswordUpdate() {
 	const [searchParams] = useSearchParams();
 
-	// Validate token
-	if (!searchParams.token) {
-		return <div>Missing token</div>;
+	let token = "";
+	if (searchParams.token && typeof searchParams.token === "string") {
+		token = searchParams.token;
 	}
-	if (typeof searchParams.token !== "string") {
-		return <div>Invalid token</div>;
+	let email = "";
+	if (searchParams.email && typeof searchParams.email === "string") {
+		email = searchParams.email;
 	}
 
 	return (
 		<>
 			<h1>Password Update</h1>
-			<PasswordUpdateForm token={searchParams.token} />
+			<PasswordUpdateForm token={token} email={email} />
 		</>
 	);
 }

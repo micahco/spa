@@ -9,7 +9,7 @@ interface ValidationErrors {
 }
 
 export default function LoginForm() {
-	const [, { login }] = useAuth();
+	const [, { login, logout }] = useAuth();
 	const [email, setEmail] = createSignal("");
 	const [password, setPassword] = createSignal("");
 	const [isSubmitting, setIsSubmitting] = createSignal(false);
@@ -22,6 +22,8 @@ export default function LoginForm() {
 		setErrMsg(null);
 		setValErrs({});
 		try {
+			logout();
+
 			const response = await api.post("tokens/authentication", {
 				json: {
 					email: email(),

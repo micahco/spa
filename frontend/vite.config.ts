@@ -11,7 +11,6 @@ export default defineConfig({
 	],
 	build: {
 		outDir: "../ui/frontend",
-		target: "esnext",
 	},
 	server: {
 		host: "127.0.0.1",

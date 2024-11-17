@@ -1,1 +1,3 @@
-# Tennis League Manager
+# SPA
+
+A Go backend + SolidJS frontend single page application boilerplate.
