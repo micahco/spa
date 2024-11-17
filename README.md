@@ -1,3 +1,3 @@
 # SPA
 
-A Go backend + SolidJS frontend single page application boilerplate.
+Go API + SolidJS frontend boilerplate
